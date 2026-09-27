@@ -1,0 +1,8 @@
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/inventory-service/src/main/java/com/practice/inventoryservice/InventoryServiceApplication.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/inventory-service/src/main/java/com/practice/inventoryservice/config/DynamoDbConfig.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/inventory-service/src/main/java/com/practice/inventoryservice/domain/InventoryItem.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/inventory-service/src/main/java/com/practice/inventoryservice/domain/InventoryRepository.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/inventory-service/src/main/java/com/practice/inventoryservice/domain/ProcessedOrderRepository.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/inventory-service/src/main/java/com/practice/inventoryservice/messaging/InventoryEventProducer.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/inventory-service/src/main/java/com/practice/inventoryservice/messaging/OrderCreatedListener.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/inventory-service/src/main/java/com/practice/inventoryservice/service/InventoryReservationService.java

@@ -1,0 +1,8 @@
+com/practice/inventoryservice/domain/InventoryItem.class
+com/practice/inventoryservice/domain/ProcessedOrderRepository.class
+com/practice/inventoryservice/service/InventoryReservationService.class
+com/practice/inventoryservice/InventoryServiceApplication.class
+com/practice/inventoryservice/config/DynamoDbConfig.class
+com/practice/inventoryservice/messaging/InventoryEventProducer.class
+com/practice/inventoryservice/domain/InventoryRepository.class
+com/practice/inventoryservice/messaging/OrderCreatedListener.class

@@ -1,0 +1,74 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://${KEYCLOAK_HOST:localhost}:${KEYCLOAK_PORT:8081}/realms/fulfillment/protocol/openid-connect/certs
+  cloud:
+    gateway:
+      routes:
+        - id: order-service
+          uri: http://${ORDER_SERVICE_HOST:localhost}:8081
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: orderServiceCB
+                fallbackUri: forward:/fallback
+        - id: fulfillment-service
+          uri: http://${FULFILLMENT_SERVICE_HOST:localhost}:8083
+          predicates:
+            - Path=/api/shipments/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: fulfillmentServiceCB
+                fallbackUri: forward:/fallback
+        - id: insight-service
+          uri: http://${INSIGHT_SERVICE_HOST:localhost}:8085
+          predicates:
+            - Path=/api/insights/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: insightServiceCB
+                fallbackUri: forward:/fallback
+
+app:
+  security:
+    # Keycloak's KC_HOSTNAME fixes every token's `iss` claim to this value regardless of
+    # which network path (container DNS vs host port) was used to request it. jwk-set-uri
+    # above is fetched over the container network; this is validated against separately
+    # because the two can legitimately differ (see SecurityConfig).
+    expected-issuer: http://localhost:8081/realms/fulfillment
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      orderServiceCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+      fulfillmentServiceCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+      insightServiceCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

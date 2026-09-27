@@ -1,0 +1,29 @@
+{
+  "realm": "fulfillment",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "gateway-client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "local-dev-secret",
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "redirectUris": ["*"]
+    }
+  ],
+  "users": [
+    {
+      "username": "dev-user",
+      "email": "dev-user@practice.local",
+      "firstName": "Dev",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [{"type": "password", "value": "devpassword", "temporary": false}],
+      "realmRoles": ["offline_access", "uma_authorization"]
+    }
+  ]
+}

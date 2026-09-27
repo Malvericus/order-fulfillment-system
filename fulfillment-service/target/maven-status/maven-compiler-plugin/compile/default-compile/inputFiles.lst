@@ -1,0 +1,8 @@
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/fulfillment-service/src/main/java/com/practice/fulfillmentservice/FulfillmentServiceApplication.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/fulfillment-service/src/main/java/com/practice/fulfillmentservice/api/ShipmentController.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/fulfillment-service/src/main/java/com/practice/fulfillmentservice/domain/Shipment.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/fulfillment-service/src/main/java/com/practice/fulfillmentservice/domain/ShipmentRepository.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/fulfillment-service/src/main/java/com/practice/fulfillmentservice/domain/ShipmentStatus.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/fulfillment-service/src/main/java/com/practice/fulfillmentservice/messaging/FulfillmentEventProducer.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/fulfillment-service/src/main/java/com/practice/fulfillmentservice/messaging/InventoryReservedListener.java
+/Users/Malvika.Bhadoriya/Downloads/practice/order-fulfillment-system/fulfillment-service/src/main/java/com/practice/fulfillmentservice/service/FulfillmentService.java

@@ -1,0 +1,8 @@
+com/practice/fulfillmentservice/domain/ShipmentStatus.class
+com/practice/fulfillmentservice/service/FulfillmentService.class
+com/practice/fulfillmentservice/messaging/FulfillmentEventProducer.class
+com/practice/fulfillmentservice/FulfillmentServiceApplication.class
+com/practice/fulfillmentservice/domain/ShipmentRepository.class
+com/practice/fulfillmentservice/messaging/InventoryReservedListener.class
+com/practice/fulfillmentservice/api/ShipmentController.class
+com/practice/fulfillmentservice/domain/Shipment.class

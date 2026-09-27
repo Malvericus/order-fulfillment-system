@@ -1,0 +1,4 @@
+com/practice/insightservice/api/InsightController.class
+com/practice/insightservice/service/StubInsightGenerator.class
+com/practice/insightservice/service/InsightGenerator.class
+com/practice/insightservice/InsightServiceApplication.class
