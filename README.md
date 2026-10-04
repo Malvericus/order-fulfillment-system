@@ -19,7 +19,70 @@ The system is compact enough to reason about end-to-end, and is architected the 
 
 ## Architecture
 
-`[ARCHITECTURE DIAGRAM IN PROGRESS]`
+```mermaid
+flowchart LR
+    Client["Client<br/><i>curl / Postman / FE</i>"]
+
+    subgraph edge["Edge"]
+        GW["API Gateway<br/>:8080"]
+        KC["Keycloak<br/>:8081"]
+    end
+
+    subgraph services["Business services"]
+        OS["order-service<br/>:8081"]
+        INV["inventory-service<br/>:8082"]
+        FS["fulfillment-service<br/>:8083"]
+        AS["alert-service<br/>:8084"]
+        IS["insight-service<br/>:8085"]
+    end
+
+    subgraph stores["Data"]
+        PG[("Postgres")]
+        DDB[("DynamoDB")]
+        K{{"Kafka"}}
+    end
+
+    subgraph ops["Observability & tooling"]
+        MP[("Mailpit")]
+        PROM[("Prometheus")]
+        GRAF[("Grafana")]
+    end
+
+    Client -- "Bearer JWT" --> GW
+    GW -. "validate token" .-> KC
+    GW -- "/api/orders/**" --> OS
+    GW -- "/api/shipments/**" --> FS
+    GW -- "/api/insights/**" --> IS
+
+    OS -- "read/write" --> PG
+    OS -- "OrderCreated" --> K
+    K -- "OrderCreated" --> INV
+    INV -- "read/write" --> DDB
+    INV -- "InventoryReserved<br/>OrderRejected" --> K
+    K -- "InventoryReserved" --> FS
+    FS -- "read/write" --> PG
+    FS -- "ShipmentScheduled<br/>ShipmentDelayed" --> K
+    K -- "OrderRejected<br/>ShipmentDelayed" --> AS
+    AS -- "SMTP" --> MP
+
+    OS -.-> PROM
+    INV -.-> PROM
+    FS -.-> PROM
+    AS -.-> PROM
+    IS -.-> PROM
+    GW -.-> PROM
+    PROM --> GRAF
+
+    classDef edge fill:#eef3f8,stroke:#4a6b8a,color:#1a2c3c
+    classDef svc fill:#f4f1ea,stroke:#a8834a,color:#3c2e1a
+    classDef data fill:#e8f4f8,stroke:#4a90a4,color:#1a4a5c
+    classDef infra fill:#f0f0f0,stroke:#999,color:#333
+
+    class GW,KC edge
+    class OS,INV,FS,AS,IS svc
+    class PG,DDB,K data
+    class MP,PROM,GRAF,Client infra
+```
 
 Five business services and one gateway, connected two ways:
 
@@ -47,7 +110,42 @@ Each service owns exactly one datastore and one Kafka responsibility. No service
 
 ## How a request flows
 
-`[EVENT FLOW DIAGRAM IN PROGRESS]`
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant U as Client
+    participant GW as API Gateway
+    participant OS as order-service
+    participant K as Kafka
+    participant INV as inventory-service
+    participant FS as fulfillment-service
+    participant AS as alert-service
+
+    U->>GW: POST /api/orders (Bearer JWT)
+    GW->>GW: validate signature + issuer
+    GW->>OS: POST /orders
+    OS->>OS: save Order (status=CREATED)
+    OS-->>GW: 201 Created
+    GW-->>U: 201 Created
+
+    Note over U,OS: Client response is complete.<br/>Everything below is asynchronous.
+
+    OS->>K: publish OrderCreated
+    K->>INV: OrderCreated
+
+    alt sufficient stock
+        INV->>INV: decrement stock
+        INV->>K: publish InventoryReserved
+        K->>FS: InventoryReserved
+        FS->>FS: create Shipment (SCHEDULED)
+        FS->>K: publish ShipmentScheduled
+    else insufficient stock
+        INV->>K: publish OrderRejected
+        K->>AS: OrderRejected
+        AS->>AS: send email via SMTP
+    end
+```
 
 Important detail: **the client's HTTP request completes the moment the order row is saved.** Everything downstream — inventory checks, shipment creation, alerting — happens after the response has gone back.
 
