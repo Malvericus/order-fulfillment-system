@@ -273,7 +273,6 @@ order-fulfillment-system/
 │
 └── docs/
     ├── smoke-test.md                # end-to-end verification runbook
-    └── specs/                       # design documents
 ```
 
 ---
