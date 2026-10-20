@@ -1,0 +1,29 @@
+# One-off Job: waits until inventory-service has created the InventoryItems table, then seeds stock so the
+# "happy path" (reserve stock -> InventoryReserved) works. Re-run after any DynamoDB Local restart:
+#   kubectl -n orders delete job seed-stock --ignore-not-found && kubectl apply -k k8s/
+# The key id is a harmless dummy; DynamoDB Local rejects ids containing hyphens (we hit this earlier).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seed-stock
+  namespace: orders
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: seed
+          image: amazon/aws-cli:2.17.0
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              export AWS_ACCESS_KEY_ID=fakeMyKeyId AWS_SECRET_ACCESS_KEY=fakeSecretAccessKey AWS_DEFAULT_REGION=us-east-1
+              EP=http://dynamodb-local:8000
+              until aws dynamodb describe-table --endpoint-url "$EP" --table-name InventoryItems >/dev/null 2>&1; do
+                echo "waiting for InventoryItems table..."; sleep 5
+              done
+              aws dynamodb put-item --endpoint-url "$EP" --table-name InventoryItems \
+                --item '{"sku":{"S":"sku-demo"},"quantityAvailable":{"N":"100"}}'
+              echo "seeded sku-demo"

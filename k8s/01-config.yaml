@@ -1,0 +1,30 @@
+# Non-secret settings shared by the app services. In Compose these were per-service `environment:`
+# entries; in-cluster DNS names replace the Compose service names (and Kafka moves to :9092).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: orders
+data:
+  KAFKA_BOOTSTRAP: kafka:9092
+  DB_HOST: postgres
+  POSTGRES_DB: fulfillment
+  MAIL_HOST: mailpit
+  MAIL_PORT: "1025"
+  DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+  # Java sizes its heap from the container memory limit; 25% by default is too small for Spring Boot.
+  JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=65"
+  # Turns on /actuator/health/liveness and /readiness regardless of platform auto-detection.
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+---
+# LOCAL DEV DUMMY VALUES ONLY (same defaults as docker-compose.yml). Never put real credentials in a
+# manifest that is committed to a public repo.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-credentials
+  namespace: orders
+type: Opaque
+stringData:
+  POSTGRES_USER: fulfillment_app
+  POSTGRES_PASSWORD: localdevpassword

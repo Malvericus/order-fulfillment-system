@@ -228,6 +228,59 @@ curl -X POST http://localhost:8080/api/orders \
   -H "Content-Type: application/json" \
   -d '{"customerId":"cust-1","items":[{"sku":"sku-1","quantity":2}]}'
 ```
+## Running on Kubernetes (kind)
+
+A slice of the system runs on a local [kind](https://kind.sigs.k8s.io/) cluster from plain manifests in `k8s/`, applied with one Kustomize command.
+
+**Included:** Kafka (KRaft, StatefulSet), PostgreSQL (StatefulSet), DynamoDB Local, Mailpit, `order-service`, `inventory-service`, `alert-service`, and a one-off Job that seeds stock. `fulfillment-service` is available as an optional add-on in `k8s/optional/`.
+
+**Not on Kubernetes yet:** Keycloak and the API gateway, Prometheus and Grafana, and `insight-service`. Without the gateway, `order-service` is called directly and unauthenticated.
+
+**Prerequisites:** Docker (at least 6 GB of memory allocated), [`kind`](https://kind.sigs.k8s.io/), and `kubectl`.
+
+```bash
+brew install kind kubectl
+
+# 1. Create the cluster
+kind create cluster --name orders
+
+# 2. Build the images from the repo root (sequentially; the Dockerfiles need the full multi-module tree)
+for s in order-service inventory-service alert-service; do
+  docker build -f $s/Dockerfile -t $s:0.1.0 .
+done
+
+# 3. Load them into the cluster
+kind load docker-image order-service:0.1.0 inventory-service:0.1.0 alert-service:0.1.0 --name orders
+
+# 4. Deploy
+kubectl apply -k k8s/
+kubectl -n orders get pods -w
+```
+
+Every pod should reach `1/1 Running` and the `seed-stock` Job should show `Complete`. Order-service and inventory-service may restart a few times while Kafka and Postgres come up; Kubernetes gives no start-order guarantee, so the apps rely on retries and probes.
+
+**Verify both paths:**
+
+```bash
+kubectl -n orders port-forward svc/order-service 18081:8081 &
+kubectl -n orders port-forward svc/mailpit 8025:8025 &
+
+# Rejection path (unknown SKU): an "Order rejected" email appears at http://localhost:8025
+curl -s -X POST localhost:18081/orders -H 'Content-Type: application/json' \
+  -d '{"customerId":"cust-1","items":[{"sku":"sku-unknown","quantity":1}]}'
+
+# Happy path (seeded SKU): an InventoryReserved event appears on the topic
+curl -s -X POST localhost:18081/orders -H 'Content-Type: application/json' \
+  -d '{"customerId":"cust-2","items":[{"sku":"sku-demo","quantity":2}]}'
+kubectl -n orders exec kafka-0 -- /opt/kafka/bin/kafka-console-consumer.sh \
+  --bootstrap-server kafka:9092 --topic inventory-reserved --from-beginning --max-messages 1
+```
+
+**Tear down:**
+
+```bash
+kind delete cluster --name orders
+```
 ---
 
 ## Testing

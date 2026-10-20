@@ -1,0 +1,37 @@
+# In-memory, like Compose. If this pod restarts the stock data is gone AND inventory-service has to be
+# restarted too (it only creates the table at startup): kubectl -n orders rollout restart deploy/inventory-service
+apiVersion: v1
+kind: Service
+metadata:
+  name: dynamodb-local
+  namespace: orders
+spec:
+  selector: {app: dynamodb-local}
+  ports:
+    - {name: http, port: 8000, targetPort: 8000}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dynamodb-local
+  namespace: orders
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: dynamodb-local}
+  template:
+    metadata:
+      labels: {app: dynamodb-local}
+    spec:
+      containers:
+        - name: dynamodb-local
+          image: amazon/dynamodb-local:2.5.4
+          args: ["-jar", "DynamoDBLocal.jar", "-inMemory", "-sharedDb"]
+          ports:
+            - {name: http, containerPort: 8000}
+          resources:
+            requests: {cpu: 50m, memory: 256Mi}
+            limits: {memory: 512Mi}
+          readinessProbe:
+            tcpSocket: {port: 8000}
+            periodSeconds: 5

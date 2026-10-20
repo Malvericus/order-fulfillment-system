@@ -1,0 +1,16 @@
+# One command brings the whole slice up:  kubectl apply -k k8s/
+# (To add the happy-path service, append "optional/fulfillment-service.yaml" to resources.)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: orders
+resources:
+  - 00-namespace.yaml
+  - 01-config.yaml
+  - 10-kafka.yaml
+  - 11-postgres.yaml
+  - 12-dynamodb-local.yaml
+  - 13-mailpit.yaml
+  - 20-order-service.yaml
+  - 21-inventory-service.yaml
+  - 22-alert-service.yaml
+  - 30-seed-stock-job.yaml
